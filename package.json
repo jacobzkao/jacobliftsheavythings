@@ -1,0 +1,15 @@
+{
+  "name": "chest-priority-log",
+  "version": "1.0.0",
+  "description": "A workout logging app for chest-priority training, tracking sets, reps, and weekly volume with a body-map view.",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve . -l 5173",
+    "dev": "npx --yes serve . -l 5173",
+    "test": "node test-volume.js && node test-state.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2"
+  },
+  "license": "UNLICENSED"
+}
