@@ -90,6 +90,11 @@ assert.match(source, /id="progressPage"/, 'app includes a full-screen progress v
 assert.match(source, /id="mainNav"/, 'top-level navigation exists');
 ['home', 'workouts', 'history', 'settings'].forEach(view => assert.match(source, new RegExp('data-view="' + view + '"'), view + ' tab exists'));
 assert.match(source, /function showView\(view\)/, 'top-level navigation switches views');
+assert.match(source, /function showWithMotion\(el\)/, 'views and modules share cancel-safe opening motion');
+assert.match(source, /function hideWithMotion\(el, done\)/, 'views and modules share closing motion');
+assert.match(source, /prefers-reduced-motion: reduce\)\{ \.motion-in,\.motion-out/, 'reduced-motion disables page and module transitions');
+assert.match(source, /class="workout-overview-row"/, 'planned workouts show compact exercise rows before starting');
+assert.match(source, /ex\.sets\+' × '\+esc\(ex\.repRange\)/, 'overview rows include sets and rep ranges');
 assert.match(source, /var all=loadSessions\(\), el=document\.getElementById\('historyList'\)/, 'history renders every saved session');
 
 const updateSession = new Function(source.match(/function updateSession\(sessions, id, change\)\{[\s\S]*?\n  \}/)[0] + '; return updateSession;')();

@@ -83,6 +83,14 @@
   .main-nav{ display:flex; gap:16px; margin:0 2px 20px; overflow-x:auto; }
   .main-tab{ background:none; border:0; border-bottom:2px solid transparent; color:var(--muted); cursor:pointer; padding:7px 0; font:400 13px 'Jost',sans-serif; letter-spacing:.12em; text-transform:lowercase; }
   .main-tab.active{ color:var(--ink); border-bottom-color:var(--ink); }
+  @keyframes viewIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+  @keyframes viewOut{ from{ opacity:1; } to{ opacity:0; transform:translateY(-4px); } }
+  @keyframes moduleIn{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+  @keyframes moduleOut{ from{ opacity:1; transform:none; } to{ opacity:0; transform:translateY(8px); } }
+  .app-view.motion-in{ animation:viewIn .18s ease-out; }
+  .app-view.motion-out{ animation:viewOut .18s ease-in; }
+  .sheet.motion-in,.progress-page.motion-in,.editor.motion-in{ animation:moduleIn .22s ease-out; }
+  .sheet.motion-out,.progress-page.motion-out,.editor.motion-out{ animation:moduleOut .18s ease-in; }
   .settings-list{ display:flex; flex-direction:column; gap:10px; }
   .settings-row{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; text-align:left; background:var(--card); border:0; cursor:pointer; }
   .settings-row .icon-btn{ width:38px; height:38px; }
@@ -159,6 +167,9 @@
   .saved-note{ font-style:italic; font-size:13px; color:var(--muted); text-align:center; min-height:20px; margin-top:8px; }
   .workout-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 2px 14px; }
   .workout-name{ font-family:'Jost',sans-serif; font-size:21px; font-weight:300; letter-spacing:.07em; text-transform:lowercase; }
+  .workout-overview{ margin:14px 0 18px; border-top:1px solid var(--line); }
+  .workout-overview-row{ display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid var(--line); }
+  .workout-overview-row span:last-child{ color:var(--muted); white-space:nowrap; font-size:13px; }
 
   /* history */
   .history{ margin-top:30px; }
@@ -235,11 +246,9 @@
     -webkit-overflow-scrolling:touch;
     padding-inline:16px;
     padding-block:calc(14px + env(safe-area-inset-top,0px)) 130px;
-    animation:sheetIn .22s ease-out;
   }
   .sheet[hidden]{ display:none; }
-  @keyframes sheetIn{ from{ transform:translateY(14px); opacity:0; } to{ transform:none; opacity:1; } }
-  @media (prefers-reduced-motion: reduce){ .sheet{ animation:none; } .figure .region{ transition:none; } }
+  @media (prefers-reduced-motion: reduce){ .motion-in,.motion-out{ animation:none!important; } .figure .region{ transition:none; } }
   .sheet-inner{ max-width:520px; margin:0 auto; }
   .sheet-top{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
   .sheet-title{ font-family:'Jost',sans-serif; font-weight:300; font-size:21px; letter-spacing:0.05em; flex:1; }
@@ -365,7 +374,7 @@
     <button type="button" class="main-tab" data-view="settings">settings</button>
   </nav>
 
-  <section id="homeView">
+  <section class="app-view" id="homeView">
     <div class="sketch sketch-pad bodypanel" id="bodyPanel"></div>
     <div class="sketch b sketch-pad volume">
       <div class="vol-top">
@@ -390,19 +399,19 @@
     </div>
   </section>
 
-  <section id="workoutsView" hidden>
+  <section class="app-view" id="workoutsView" hidden>
     <div class="tabs" id="tabs"></div>
     <div id="dayView"></div>
   </section>
 
-  <section id="historyView" hidden>
+  <section class="app-view" id="historyView" hidden>
     <div class="history">
       <div class="sec-head">previous sessions</div>
       <div id="historyList"></div>
     </div>
   </section>
 
-  <section id="settingsView" hidden>
+  <section class="app-view" id="settingsView" hidden>
     <div class="settings-list">
       <button type="button" class="sketch settings-row" id="openEdit"><span>edit program</span><span aria-hidden="true">&#9998;</span></button>
       <div class="sketch settings-row"><span>appearance</span><button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">&#9789;</button></div>
@@ -825,14 +834,34 @@
 
   /* ---------- tabs ---------- */
   var activeView='home', mainNav=document.getElementById('mainNav');
+  function showWithMotion(el){
+    clearTimeout(el.motionTimer); el.hidden=false;
+    el.classList.remove('motion-out','motion-in');
+    void el.offsetWidth;
+    el.classList.add('motion-in');
+    el.motionTimer=setTimeout(function(){ el.classList.remove('motion-in'); },230);
+  }
+  function hideWithMotion(el, done){
+    clearTimeout(el.motionTimer);
+    el.classList.remove('motion-in','motion-out');
+    void el.offsetWidth;
+    el.classList.add('motion-out');
+    el.motionTimer=setTimeout(function(){
+      el.hidden=true; el.classList.remove('motion-out');
+      if(done) done();
+    },230);
+  }
   function showView(view){
+    if(view===activeView) return;
+    var previous=document.getElementById(activeView+'View');
     activeView=view;
     ['home','workouts','history','settings'].forEach(function(name){
-      document.getElementById(name+'View').hidden=name!==view;
+      if(name===view) showWithMotion(document.getElementById(name+'View'));
       var tab=mainNav.querySelector('[data-view="'+name+'"]');
       tab.classList.toggle('active', name===view);
       if(name===view) tab.setAttribute('aria-current','page'); else tab.removeAttribute('aria-current');
     });
+    hideWithMotion(previous);
   }
   mainNav.addEventListener('click',function(event){ if(event.target.dataset.view) showView(event.target.dataset.view); });
 
@@ -882,7 +911,9 @@
   function renderDay(){
     if(!activeWorkout){
       var planned=program[activeDay]||[], total=planned.reduce(function(n,ex){return n+ex.sets;},0);
-      dayView.innerHTML='<div class="sketch sketch-pad"><div class="vol-label">'+esc(DAY_LABELS[activeDay])+'</div><div class="sheet-reps">'+planned.length+' exercises · '+total+' sets</div><button class="pill" id="startWorkout">start workout</button></div>';
+      var html='<div class="sketch sketch-pad"><div class="vol-label">'+esc(DAY_LABELS[activeDay])+'</div><div class="sheet-reps">'+planned.length+' exercises · '+total+' sets</div><div class="workout-overview">';
+      planned.forEach(function(ex){ html+='<div class="workout-overview-row"><span>'+esc(ex.name)+'</span><span>'+ex.sets+' × '+esc(ex.repRange)+'</span></div>'; });
+      dayView.innerHTML=html+'</div><button class="pill" id="startWorkout">start workout</button></div>';
       document.getElementById('startWorkout').addEventListener('click',startWorkout);
       return;
     }
@@ -945,15 +976,15 @@
   function openSheet(idx){
     openIdx=idx;
     renderSheet();
-    sheet.hidden=false;
+    showWithMotion(sheet);
     document.body.style.overflow='hidden';
     sheet.scrollTop=0;
   }
   function closeSheet(){
-    sheet.hidden=true; openIdx=null;
-    document.body.style.overflow='';
-    renderDay();
-    if(typeof flushPendingRemote === 'function') flushPendingRemote();
+    hideWithMotion(sheet,function(){
+      openIdx=null; document.body.style.overflow=''; renderDay();
+      if(typeof flushPendingRemote === 'function') flushPendingRemote();
+    });
   }
 
   function renderSheet(){
@@ -1076,11 +1107,13 @@
     if(!progressPage.hidden) renderProgress();
   }
   function openLogEditor(id){
-    logSessionId=id; renderLogEditor(); logEditor.hidden=false; document.body.style.overflow='hidden'; logEditor.scrollTop=0;
+    logSessionId=id; renderLogEditor(); showWithMotion(logEditor); document.body.style.overflow='hidden'; logEditor.scrollTop=0;
   }
   function closeLogEditor(){
-    logEditor.hidden=true; logSessionId=null; document.body.style.overflow=''; renderHistory();
-    if(typeof flushPendingRemote === 'function') flushPendingRemote();
+    hideWithMotion(logEditor,function(){
+      logSessionId=null; document.body.style.overflow=''; renderHistory();
+      if(typeof flushPendingRemote === 'function') flushPendingRemote();
+    });
   }
   function renderLogEditor(){
     var session=logSession();
@@ -1234,8 +1267,8 @@
     }
     renderProgressPointDetail();
   }
-  document.getElementById('openProgress').addEventListener('click',function(){ progressPage.hidden=false; document.body.style.overflow='hidden'; renderProgress(); document.getElementById('closeProgress').focus(); });
-  document.getElementById('closeProgress').addEventListener('click',function(){ progressPage.hidden=true; document.body.style.overflow=''; document.getElementById('openProgress').focus(); });
+  document.getElementById('openProgress').addEventListener('click',function(){ showWithMotion(progressPage); document.body.style.overflow='hidden'; renderProgress(); document.getElementById('closeProgress').focus(); });
+  document.getElementById('closeProgress').addEventListener('click',function(){ hideWithMotion(progressPage,function(){ document.body.style.overflow=''; document.getElementById('openProgress').focus(); }); });
   document.getElementById('progressExercise').addEventListener('change',function(event){ progressChoice=event.target.value; renderProgress(); });
   document.getElementById('progressRanges').addEventListener('click',function(event){ if(event.target.dataset.range){ progressRange=event.target.dataset.range; renderProgress(); } });
   document.addEventListener('keydown',function(event){ if(event.key==='Escape' && !progressPage.hidden) document.getElementById('closeProgress').click(); });
@@ -1245,17 +1278,18 @@
   var edDay="A", swapOpen=null;
 
   document.getElementById('openEdit').addEventListener('click', function(){
-    edDay=activeDay; swapOpen=null; editor.hidden=false; document.body.style.overflow='hidden';
+    edDay=activeDay; swapOpen=null; showWithMotion(editor); document.body.style.overflow='hidden';
     var rest=program.A[0] ? program.A[0].rest : 90;
     document.getElementById('defaultRestMinutes').value=Math.floor(rest/60);
     document.getElementById('defaultRestSeconds').value=rest%60;
     renderEdTabs(); renderEdList();
   });
   function closeEditor(){
-    editor.hidden=true; document.body.style.overflow='';
-    activeDay=edDay;
-    renderTabs(); renderDay(); renderBodyPanel(); renderVolume();
-    if(typeof flushPendingRemote === 'function') flushPendingRemote();
+    hideWithMotion(editor,function(){
+      document.body.style.overflow=''; activeDay=edDay;
+      renderTabs(); renderDay(); renderBodyPanel(); renderVolume();
+      if(typeof flushPendingRemote === 'function') flushPendingRemote();
+    });
   }
   document.getElementById('closeEdit').addEventListener('click', closeEditor);
   document.getElementById('doneEdit').addEventListener('click', closeEditor);
