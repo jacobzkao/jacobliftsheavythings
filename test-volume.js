@@ -43,6 +43,30 @@ const progressBlock = source.match(/\/\* ---------- progress data ---------- \*\
 assert.ok(progressBlock, 'progress data helpers exist');
 const progress = new Function(`${progressBlock[1]}; return { progressGroups, exerciseProgress, overallProgress };`)();
 
+const weightBlock = source.match(/\/\* ---------- body weight data ---------- \*\/([\s\S]*?)\/\* ---------- progress ui ---------- \*\//);
+assert.ok(weightBlock, 'body weight data helpers exist');
+const weights = new Function(`${weightBlock[1]}; return { weightValue, sortedWeightEntries, latestWeight, updateWeight };`)();
+assert.equal(weights.weightValue('180.5'), 180.5, 'positive decimal weights are accepted');
+assert.equal(weights.weightValue('0'), null, 'zero weights are rejected');
+assert.equal(weights.weightValue('-1'), null, 'negative weights are rejected');
+assert.equal(weights.weightValue('nope'), null, 'non-numeric weights are rejected');
+const entries = weights.sortedWeightEntries([
+  { id: 3, date: '2026-01-05', weight: 181 },
+  { id: 1, date: '2025-12-20', weight: 185 },
+  { id: 2, date: '2026-01-05', weight: 180 }
+]);
+assert.deepEqual(entries.map(entry => entry.weight), [185, 180, 181], 'historical entries sort by date and retain same-day logs');
+assert.equal(weights.latestWeight(entries).weight, 181, 'the latest dated weight supplies the placeholder');
+const updatedEntries = weights.updateWeight(entries, 2, entry => { entry.weight = 179.5; entry.date = '2026-01-06'; });
+assert.equal(updatedEntries.find(entry => entry.id === 2).weight, 179.5, 'previously logged weights can be updated');
+assert.match(source, /id="openWeight"/, 'the Home chart opens the weight module');
+assert.match(source, /id="weightCurrent"/, 'the Home weight module shows the current weight');
+assert.match(source, /id="weightPage"/, 'weight logging is contained in a module');
+assert.match(source, /id="weightAddForm"/, 'the module can add weights');
+assert.match(source, /class="weight-log"/, 'the module shows existing weights as readable logs');
+assert.match(source, /id="weightEditPage"/, 'a selected log opens a dedicated edit menu');
+assert.match(source, /function openWeightEditor\(id\)/, 'weight logs open the edit menu on click');
+
 const sessions = [
   { date: '2026-01-12T12:00:00Z', day: 'A', exercises: [{ name: 'Bench Press', sets: [{ w: '80', r: '6' }, { w: '80', r: '5' }, { w: '80', r: '5' }] }] },
   { date: '2026-01-05T12:00:00Z', day: 'A', exercises: [{ name: 'Bench Press', sets: [{ w: '75', r: '8' }, { w: '75', r: '7' }, { w: '75', r: '7' }] }] },
@@ -83,19 +107,51 @@ assert.equal(legacy.points[0].sets.length, 2, 'legacy compact arrays remain read
 assert.notEqual(edgeGroups.find(group => group.key === 'renamed'), edgeGroups.find(group => group.key === 'different name'), 'renamed exercises remain separate trends');
 
 assert.match(source, /sets:d\[i\]\.map\(/, 'future sessions preserve blank set positions');
-assert.match(source, /\(e\.sets\|\|\[\]\)\.some\(setComplete\)/, 'blank preserved rows do not replace the last completed workout');
+assert.match(source, /\(exercise\.sets\|\|\[\]\)\.some\(setComplete\) \|\| exercise\.note/, 'prior notes are available even when an older exercise has blank sets');
+assert.match(source, /id="sheetNote"/, 'active exercises can be given notes');
+assert.match(source, /previous-note/, 'the active exercise shows its prior note');
+assert.match(source, /data-log-note/, 'historical exercise notes remain editable');
+const lastTime = new Function(`var activeWorkout={id:3,date:'2026-01-20T12:00:00Z'};
+  function loadSessions(){ return [
+    {id:1,date:'2026-01-05T12:00:00Z',exercises:[{name:'Bench',sets:[{w:'100'}],note:'first cue'}]},
+    {id:3,date:'2026-01-20T12:00:00Z',exercises:[{name:'Bench',sets:[{w:'110'}],note:'current cue'}]},
+    {id:2,date:'2026-01-12T12:00:00Z',exercises:[{name:'Bench',sets:[{}],note:'latest cue'}]}
+  ]; }
+  function setComplete(set){ return !!(set && (set.w || set.r)); }
+  ${source.match(/function lastTime\(name\)\{[\s\S]*?\n  \}/)[0]}
+  return lastTime;`)();
+assert.deepEqual(lastTime('Bench').note, 'latest cue', 'previous notes use the latest earlier session and exclude the active workout');
 assert.match(source, /id="progressPreviewChart"/, 'home page includes a progress preview');
 assert.match(source, /id="progressPage"/, 'app includes a full-screen progress view');
 
 assert.match(source, /id="mainNav"/, 'top-level navigation exists');
 ['home', 'workouts', 'history', 'settings'].forEach(view => assert.match(source, new RegExp('data-view="' + view + '"'), view + ' tab exists'));
 assert.match(source, /function showView\(view\)/, 'top-level navigation switches views');
-assert.match(source, /function showWithMotion\(el\)/, 'views and modules share cancel-safe opening motion');
-assert.match(source, /function hideWithMotion\(el, done\)/, 'views and modules share closing motion');
-assert.match(source, /prefers-reduced-motion: reduce\)\{ \.motion-in,\.motion-out/, 'reduced-motion disables page and module transitions');
+assert.doesNotMatch(source, /showWithMotion|hideWithMotion|motion-|@keyframes|animation:|transition:/, 'the interface has no animation helpers or CSS animations');
 assert.match(source, /class="workout-overview-row"/, 'planned workouts show compact exercise rows before starting');
 assert.match(source, /ex\.sets\+' × '\+esc\(ex\.repRange\)/, 'overview rows include sets and rep ranges');
 assert.match(source, /var all=loadSessions\(\), el=document\.getElementById\('historyList'\)/, 'history renders every saved session');
+
+assert.match(source, /id="consistencyCalendar"/, 'history includes a consistency calendar');
+assert.match(source, /data-calendar-month="-1"/, 'calendar can move to the previous month');
+assert.match(source, /data-calendar-month="1"/, 'calendar can move to the next month');
+assert.match(source, /data-calendar-date/, 'logged calendar days are selectable');
+assert.match(source, /data-calendar-edit/, 'selected day summaries can open the log editor');
+const calendarBlock = source.match(/function calendarDateKey\(value\)\{[\s\S]*?function sessionDateForInput\(value, existing\)\{[\s\S]*?\n  \}/);
+assert.ok(calendarBlock, 'calendar date helpers exist');
+const calendar = new Function(calendarBlock[0] + '; return { calendarDateKey, calendarSessionGroups, sessionDateForInput };')();
+const calendarSessions = calendar.calendarSessionGroups([
+  { id: 1, date: '2026-01-05T12:00:00Z' },
+  { id: 2, date: '2026-01-05T18:00:00Z' },
+  { id: 3, date: '2026-02-01T12:00:00Z' },
+  { id: 4, date: 'not a date' }
+]);
+assert.deepEqual(Object.keys(calendarSessions).sort(), ['2026-01-05', '2026-02-01'], 'calendar groups sessions by local date and ignores invalid dates');
+assert.equal(calendarSessions['2026-01-05'].length, 2, 'calendar retains multiple sessions on a date');
+const redated = calendar.sessionDateForInput('2026-02-03', '2026-01-05T12:34:56.789Z');
+assert.equal(calendar.calendarDateKey(redated), '2026-02-03', 'historical date edits use the selected calendar day');
+assert.equal(new Date(redated).getHours(), new Date('2026-01-05T12:34:56.789Z').getHours(), 'historical date edits preserve the local time of day');
+assert.equal(calendar.sessionDateForInput('2026-02-31', '2026-01-05T12:00:00Z'), '', 'invalid date changes are rejected');
 
 const updateSession = new Function(source.match(/function updateSession\(sessions, id, change\)\{[\s\S]*?\n  \}/)[0] + '; return updateSession;')();
 const savedLogs = [{ id: 1, day: 'A', date: '2026-01-01T12:00:00Z', exercises: [{ name: 'Bench', sets: [{ w: '100', r: '5' }] }] }];
@@ -105,4 +161,5 @@ assert.equal(editedLogs[0].exercises[0].sets[0].r, '6', 'historical set values p
 assert.equal(editedLogs[0].day, 'A', 'historical day remains unchanged');
 assert.equal(editedLogs[0].date, '2026-01-01T12:00:00Z', 'historical date remains unchanged');
 assert.match(source, /id="logEditor"/, 'history opens an editor for saved logs');
+assert.match(source, /id="logDate" type="date"/, 'historical editor can edit a workout date');
 assert.match(source, /refreshChestSets\(session\)/, 'historical edits refresh the visible chest-set total');

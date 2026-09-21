@@ -83,14 +83,6 @@
   .main-nav{ display:flex; gap:16px; margin:0 2px 20px; overflow-x:auto; }
   .main-tab{ background:none; border:0; border-bottom:2px solid transparent; color:var(--muted); cursor:pointer; padding:7px 0; font:400 13px 'Jost',sans-serif; letter-spacing:.12em; text-transform:lowercase; }
   .main-tab.active{ color:var(--ink); border-bottom-color:var(--ink); }
-  @keyframes viewIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
-  @keyframes viewOut{ from{ opacity:1; } to{ opacity:0; transform:translateY(-4px); } }
-  @keyframes moduleIn{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
-  @keyframes moduleOut{ from{ opacity:1; transform:none; } to{ opacity:0; transform:translateY(8px); } }
-  .app-view.motion-in{ animation:viewIn .18s ease-out; }
-  .app-view.motion-out{ animation:viewOut .18s ease-in; }
-  .sheet.motion-in,.progress-page.motion-in,.editor.motion-in{ animation:moduleIn .22s ease-out; }
-  .sheet.motion-out,.progress-page.motion-out,.editor.motion-out{ animation:moduleOut .18s ease-in; }
   .settings-list{ display:flex; flex-direction:column; gap:10px; }
   .settings-row{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; text-align:left; background:var(--card); border:0; cursor:pointer; }
   .settings-row .icon-btn{ width:38px; height:38px; }
@@ -102,7 +94,7 @@
   .fig-cap{ font-family:'Jost',sans-serif; font-weight:300; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); }
   svg.figure{ display:block; width:100%; height:auto; max-width:100%; }
   .figure .stroke{ fill:none; stroke:var(--ink); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  .figure .region{ fill:transparent; stroke:none; transition:fill 0.35s ease, opacity 0.35s ease; }
+  .figure .region{ fill:transparent; stroke:none; }
   .figure .region.primary{ fill:var(--hl); opacity:0.88; }
   .figure .region.secondary{ fill:url(#hatch); opacity:0.9; }
   .legend{ display:flex; justify-content:center; gap:14px; margin-top:14px; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); font-family:'Jost',sans-serif; }
@@ -121,7 +113,7 @@
     content:''; position:absolute; inset:0; border:1.5px solid var(--ink);
     border-radius:999px; filter:url(#rough2);
   }
-  .vol-fill{ position:absolute; top:3px; bottom:3px; left:3px; background:var(--ink); border-radius:999px; transition:width .35s ease; }
+  .vol-fill{ position:absolute; top:3px; bottom:3px; left:3px; background:var(--ink); border-radius:999px; }
   .week-row{ display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
   .week-row button{ background:none; border:none; font-size:16px; cursor:pointer; padding:6px 10px; }
   .week-lab{ font-size:13px; color:var(--muted); letter-spacing:0.02em; }
@@ -184,6 +176,22 @@
   .foot-note{ margin-top:26px; text-align:center; font-size:11px; letter-spacing:0.04em; color:var(--muted); }
   .install-note{ margin:9px 0 0; text-align:center; font-size:11px; color:var(--muted); }
   .install-note summary{ cursor:pointer; }
+  .calendar{ margin-bottom:26px; }
+  .calendar-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+  .calendar-month{ font-family:'Jost',sans-serif; font-size:17px; font-weight:300; letter-spacing:.08em; text-transform:lowercase; }
+  .calendar-nav{ display:flex; gap:6px; }
+  .calendar-nav button{ width:36px; min-height:36px; border:1.3px solid var(--line); border-radius:50%; background:none; color:var(--ink); cursor:pointer; font-size:16px; }
+  .calendar-weekdays,.calendar-days{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; }
+  .calendar-weekdays{ margin-bottom:5px; color:var(--muted); font:10px 'Jost',sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+  .calendar-day{ min-height:38px; border:1px solid transparent; border-radius:50%; background:none; color:var(--muted); font:inherit; font-variant-numeric:tabular-nums; }
+  button.calendar-day{ color:var(--ink); cursor:pointer; }
+  .calendar-day.logged{ border-color:var(--ink); border-radius:48% 52% 46% 54% / 54% 47% 53% 46%; filter:url(#rough2); font-weight:700; }
+  .calendar-day.selected{ background:var(--ink); color:var(--paper); }
+  .calendar-detail{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+  .calendar-detail-title{ font-size:13px; font-weight:500; margin-bottom:6px; }
+  .calendar-session{ display:flex; align-items:center; gap:10px; padding:7px 0; }
+  .calendar-session-main{ flex:1; min-width:0; }
+  .calendar-session-meta{ color:var(--muted); font-size:12px; }
 
   /* progress */
   .progress-preview{ margin-bottom:18px; }
@@ -191,6 +199,19 @@
   .progress-score{ font-family:'Jost',sans-serif; font-size:26px; font-weight:300; line-height:1.15; }
   .progress-change{ color:var(--muted); font-size:12px; margin-top:2px; }
   .progress-open{ background:none; border:0; padding:4px 0; color:var(--muted); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+  .weight-card{ margin-bottom:18px; }
+  .weight-current{ font-family:'Jost',sans-serif; font-size:24px; font-weight:300; line-height:1.15; margin-top:3px; }
+  .weight-form{ display:grid; grid-template-columns:1fr 1fr auto; gap:8px; margin-top:12px; }
+  .weight-form label{ min-width:0; }
+  .weight-form input{ box-sizing:border-box; width:100%; min-height:42px; padding:8px; border:1.4px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink); font:inherit; }
+  .weight-form button{ min-height:42px; padding:8px 13px; border:0; border-radius:999px; background:var(--ink); color:var(--paper); cursor:pointer; font:12px 'Jost',sans-serif; letter-spacing:.1em; text-transform:uppercase; }
+  .weight-note{ min-height:18px; margin-top:7px; color:var(--muted); font-size:12px; }
+  .weight-list{ margin-top:18px; }
+  .weight-log{ display:flex; width:100%; align-items:center; gap:12px; padding:13px 2px; border:0; border-top:1px solid var(--line); background:none; color:var(--ink); cursor:pointer; font:inherit; text-align:left; }
+  .weight-log span:first-child{ flex:1; color:var(--muted); }
+  .weight-log strong{ font-family:'Jost',sans-serif; font-size:18px; font-weight:400; }
+  .weight-log .chev{ margin-left:3px; }
+  @media(max-width:420px){ .weight-form{ grid-template-columns:1fr 1fr; } .weight-form button{ grid-column:1 / -1; } }
   .chart{ margin-top:12px; min-height:92px; }
   .chart svg{ display:block; width:100%; height:auto; overflow:visible; }
   .chart-grid{ stroke:var(--line); stroke-width:1; }
@@ -248,7 +269,6 @@
     padding-block:calc(14px + env(safe-area-inset-top,0px)) 130px;
   }
   .sheet[hidden]{ display:none; }
-  @media (prefers-reduced-motion: reduce){ .motion-in,.motion-out{ animation:none!important; } .figure .region{ transition:none; } }
   .sheet-inner{ max-width:520px; margin:0 auto; }
   .sheet-top{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
   .sheet-title{ font-family:'Jost',sans-serif; font-weight:300; font-size:21px; letter-spacing:0.05em; flex:1; }
@@ -266,6 +286,12 @@
   .sheet-nav{ background:none; border:none; padding:8px 0; min-height:52px; cursor:pointer; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; white-space:nowrap; filter:url(#rough2); }
   .sheet-nav .arrow{ font-size:22px; vertical-align:-2px; }
   .lasttime{ font-style:italic; font-size:13px; color:var(--muted); text-align:center; margin-top:16px; }
+  .exercise-note{ width:100%; min-height:76px; resize:vertical; padding:10px; border:1.4px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); font:inherit; line-height:1.4; }
+  .exercise-note:focus{ outline:none; border-color:var(--ink); }
+  .note-label{ display:block; margin-top:16px; }
+  .note-label .vol-label{ display:block; margin-bottom:6px; }
+  .previous-note{ margin-top:14px; padding:11px 12px; border-left:2px solid var(--ink); color:var(--muted); font-size:13px; white-space:pre-wrap; }
+  .previous-note strong{ color:var(--ink); font-size:10px; letter-spacing:.1em; text-transform:uppercase; }
 
   /* rest bar */
   .rest-bar{
@@ -275,9 +301,6 @@
     display:flex; align-items:center; gap:12px;
   }
   .rest-bar[hidden]{ display:none; }
-  .rest-bar.done{ animation:flash 1s steps(1) infinite; }
-  @keyframes flash{ 0%,50%{ opacity:1 } 51%,100%{ opacity:0.75 } }
-  @media (prefers-reduced-motion: reduce){ .rest-bar.done{ animation:none; } }
   .rest-info{ flex:1; min-width:0; }
   .rest-ex{ font-family:'Jost',sans-serif; font-weight:300; font-size:9.5px; letter-spacing:0.16em; text-transform:uppercase; opacity:0.7;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -297,6 +320,8 @@
   .ed-inner{ max-width:520px; margin:0 auto; }
   .ed-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
   .ed-hint{ font-style:italic; font-size:13px; color:var(--muted); margin-bottom:16px; }
+  .log-date{ margin-left:7px; padding:4px 1px; border:0; border-bottom:1.4px solid var(--line); border-radius:0; background:none; color:var(--ink); font:inherit; }
+  .log-date:focus{ outline:none; border-bottom-color:var(--ink); }
   .ed-card{ padding:13px 14px; margin-bottom:10px; }
   .ed-row{ display:flex; gap:11px; align-items:flex-start; }
   .ord{ display:flex; flex-direction:column; gap:6px; }
@@ -397,6 +422,10 @@
       </div>
       <div class="chart" id="progressPreviewChart"></div>
     </div>
+    <div class="sketch b sketch-pad weight-card">
+      <div class="progress-head"><div><div class="vol-label">body weight</div><div class="weight-current num" id="weightCurrent">—</div></div><button class="progress-open" id="openWeight">add or edit</button></div>
+      <div class="chart" id="weightChart"></div>
+    </div>
   </section>
 
   <section class="app-view" id="workoutsView" hidden>
@@ -406,6 +435,8 @@
 
   <section class="app-view" id="historyView" hidden>
     <div class="history">
+      <div class="sec-head">consistency</div>
+      <div class="sketch sketch-pad calendar" id="consistencyCalendar"></div>
       <div class="sec-head">previous sessions</div>
       <div id="historyList"></div>
     </div>
@@ -437,6 +468,31 @@
       <div class="progress-legend" id="progressLegend"></div>
       <div class="point-detail" id="progressPointDetail"></div>
     </div>
+  </div>
+</div>
+
+<div class="progress-page" id="weightPage" role="dialog" aria-modal="true" aria-labelledby="weightTitle" hidden>
+  <div class="progress-inner">
+    <div class="progress-page-top"><button class="icon-btn" id="closeWeight" aria-label="Back">&larr;</button><h1 id="weightTitle">body weight</h1></div>
+    <form class="weight-form" id="weightAddForm">
+      <label><input id="weightInput" type="text" inputmode="decimal" aria-label="Weight in pounds" placeholder="lb"></label>
+      <label><input id="weightDate" type="date" aria-label="Weight date"></label>
+      <button type="submit">log weight</button>
+    </form>
+    <div class="weight-note" id="weightNote" role="status"></div>
+    <div class="weight-list" id="weightList"></div>
+  </div>
+</div>
+
+<div class="progress-page" id="weightEditPage" role="dialog" aria-modal="true" aria-labelledby="weightEditTitle" hidden>
+  <div class="progress-inner">
+    <div class="progress-page-top"><button class="icon-btn" id="closeWeightEdit" aria-label="Back">&larr;</button><h1 id="weightEditTitle">edit weight</h1></div>
+    <form class="weight-form" id="weightEditForm">
+      <label><input id="weightEditInput" type="text" inputmode="decimal" aria-label="Weight in pounds"></label>
+      <label><input id="weightEditDate" type="date" aria-label="Weight date"></label>
+      <button type="submit">save</button>
+    </form>
+    <div class="weight-note" id="weightEditNote" role="status"></div>
   </div>
 </div>
 
@@ -620,6 +676,7 @@
   var PROGRAM_KEY = "chestlog_program_v3";
   var THEME_KEY = "chestlog_theme";
   var ACTIVE_KEY = "chestlog_active_v1";
+  var WEIGHT_KEY = "chestlog_weights_v1";
   var REMOTE_READY_KEY = "chestlog_remote_v1";
 
   function safeGet(k){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
@@ -629,12 +686,21 @@
 
   function loadSessions(){ return safeGet(SESS_KEY) || []; }
   function saveSessions(l){ safeSet(SESS_KEY, l); scheduleCloudSync(); }
+  function loadWeights(){ return safeGet(WEIGHT_KEY) || []; }
+  function saveWeights(l){ safeSet(WEIGHT_KEY, l); scheduleCloudSync(); }
   function mergeSessions(local, remote){
     var seen={};
     return (local||[]).concat(remote||[]).filter(function(session){
       var key=session && (session.id || (session.day+'|'+session.date));
       if(!key || seen[key]) return false;
       return seen[key]=true;
+    });
+  }
+  function mergeWeights(local, remote){
+    var seen={};
+    return (local||[]).concat(remote||[]).filter(function(entry){
+      if(!entry || entry.id===undefined || entry.id===null || seen[entry.id]) return false;
+      return seen[entry.id]=true;
     });
   }
 
@@ -653,7 +719,7 @@
   /* ---------- Vercel state sync (localStorage stays the offline cache) ---------- */
   var activeWorkout = safeGet(ACTIVE_KEY), remoteRevision = null, syncTimer = null, syncing = false, pendingRemoteData = null;
   function saveActiveWorkout(){ safeSet(ACTIVE_KEY, activeWorkout); scheduleCloudSync(); }
-  function stateSnapshot(){ return {program:program, sessions:loadSessions(), theme:safeGet(THEME_KEY)||null, activeWorkout:activeWorkout||null}; }
+  function stateSnapshot(){ return {program:program, sessions:loadSessions(), weights:loadWeights(), theme:safeGet(THEME_KEY)||null, activeWorkout:activeWorkout||null}; }
   function scheduleCloudSync(){
     if(remoteRevision===null || syncing) return;
     if(syncTimer) clearTimeout(syncTimer);
@@ -676,6 +742,7 @@
     var programOk = data.program && DAY_KEYS.every(function(k){ return Array.isArray(data.program[k]); });
     if(programOk){ program = data.program; safeSet(PROGRAM_KEY, program); }
     if(Array.isArray(data.sessions)){ safeSet(SESS_KEY, mergeSessions(data.sessions, loadSessions())); }
+    if(Array.isArray(data.weights)){ safeSet(WEIGHT_KEY, mergeWeights(data.weights, loadWeights())); }
     if(data.theme === 'dark' || data.theme === 'light'){ safeSet(THEME_KEY, data.theme); }
     if(data.activeWorkout===null || (data.activeWorkout && data.activeWorkout.id)){ activeWorkout=data.activeWorkout; safeSet(ACTIVE_KEY, activeWorkout); }
     if(activeWorkout) activeDay=activeWorkout.day;
@@ -686,11 +753,12 @@
     if(typeof renderVolume === 'function') renderVolume();
     if(typeof renderHistory === 'function') renderHistory();
     if(typeof renderProgressPreview === 'function') renderProgressPreview();
+    if(typeof renderWeight === 'function') renderWeight();
     if(typeof renderProgress === 'function' && progressPage && !progressPage.hidden) renderProgress();
     if(editor && !editor.hidden){ renderEdTabs(); renderEdList(); }
   }
   function tryApplyRemote(data){
-    if((sheet && !sheet.hidden) || (editor && !editor.hidden) || (logEditor && !logEditor.hidden)){
+    if((sheet && !sheet.hidden) || (editor && !editor.hidden) || (logEditor && !logEditor.hidden) || (weightPage && !weightPage.hidden)){
       pendingRemoteData = data;
       return;
     }
@@ -711,7 +779,7 @@
       if(data.state) tryApplyRemote(data.state);
       else if(!safeGet(REMOTE_READY_KEY)){
         program=clone(DEFAULT_PROGRAM); activeWorkout=null;
-        safeSet(PROGRAM_KEY,program); safeSet(SESS_KEY,[]); safeSet(ACTIVE_KEY,null);
+        safeSet(PROGRAM_KEY,program); safeSet(SESS_KEY,[]); safeSet(WEIGHT_KEY,[]); safeSet(ACTIVE_KEY,null);
         applyRemoteState(stateSnapshot());
       }
       safeSet(REMOTE_READY_KEY,true);
@@ -798,6 +866,20 @@
     }).filter(Boolean);
     return {points:points,exercises:weighted.length};
   }
+  /* ---------- body weight data ---------- */
+  function weightValue(value){ var n=Number(value); return isFinite(n) && n>0 ? n : null; }
+  function weightDate(date){
+    if(typeof date!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+    var d=new Date(date+'T12:00:00');
+    return isNaN(d.getTime()) || d.getFullYear()!==+date.slice(0,4) || d.getMonth()!==+date.slice(5,7)-1 || d.getDate()!==+date.slice(8,10) ? null : d;
+  }
+  function validWeightEntry(entry){ return !!(entry && entry.id!==undefined && entry.id!==null && weightDate(entry.date) && weightValue(entry.weight)!==null); }
+  function sortedWeightEntries(entries){
+    return (entries||[]).filter(validWeightEntry).map(function(entry){ return {id:entry.id,date:entry.date,weight:weightValue(entry.weight)}; }).sort(function(a,b){ return a.date.localeCompare(b.date) || (a.id>b.id?1:a.id<b.id?-1:0); });
+  }
+  function latestWeight(entries){ var sorted=sortedWeightEntries(entries); return sorted[sorted.length-1] || null; }
+  function updateWeight(entries,id,change){ return (entries||[]).map(function(entry){ if(String(entry.id)===String(id)) change(entry); return entry; }); }
+  function weightToday(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
   /* ---------- progress ui ---------- */
 
   /* ---------- rest timer ---------- */
@@ -820,7 +902,7 @@
     }catch(e){}
   }
   function fmtT(s){ var n=s<0, a=Math.abs(s); return (n?'+':'')+Math.floor(a/60)+':'+(a%60<10?'0':'')+(a%60); }
-  function paintRest(){ restTimeEl.textContent = fmtT(restLeft); restBar.classList.toggle('done', restLeft<=0); }
+  function paintRest(){ restTimeEl.textContent = fmtT(restLeft); }
   function startRest(name, secs){
     restLeft=secs; restPaused=false; restPauseBtn.textContent='pause';
     restEx.textContent='rest — '+name; restBar.hidden=false; paintRest();
@@ -834,34 +916,17 @@
 
   /* ---------- tabs ---------- */
   var activeView='home', mainNav=document.getElementById('mainNav');
-  function showWithMotion(el){
-    clearTimeout(el.motionTimer); el.hidden=false;
-    el.classList.remove('motion-out','motion-in');
-    void el.offsetWidth;
-    el.classList.add('motion-in');
-    el.motionTimer=setTimeout(function(){ el.classList.remove('motion-in'); },230);
-  }
-  function hideWithMotion(el, done){
-    clearTimeout(el.motionTimer);
-    el.classList.remove('motion-in','motion-out');
-    void el.offsetWidth;
-    el.classList.add('motion-out');
-    el.motionTimer=setTimeout(function(){
-      el.hidden=true; el.classList.remove('motion-out');
-      if(done) done();
-    },230);
-  }
   function showView(view){
     if(view===activeView) return;
     var previous=document.getElementById(activeView+'View');
     activeView=view;
     ['home','workouts','history','settings'].forEach(function(name){
-      if(name===view) showWithMotion(document.getElementById(name+'View'));
+      if(name===view) document.getElementById(name+'View').hidden=false;
       var tab=mainNav.querySelector('[data-view="'+name+'"]');
       tab.classList.toggle('active', name===view);
       if(name===view) tab.setAttribute('aria-current','page'); else tab.removeAttribute('aria-current');
     });
-    hideWithMotion(previous);
+    previous.hidden=true;
   }
   mainNav.addEventListener('click',function(event){ if(event.target.dataset.view) showView(event.target.dataset.view); });
 
@@ -943,7 +1008,7 @@
 
   function startWorkout(){
     var list=clone(program[activeDay]);
-    activeWorkout={id:Date.now(),day:activeDay,label:DAY_LABELS[activeDay],date:new Date().toISOString(),exercises:list,rows:list.map(function(ex){ return Array.from({length:ex.sets},function(){return {w:'',r:''};}); })};
+    activeWorkout={id:Date.now(),day:activeDay,label:DAY_LABELS[activeDay],date:new Date().toISOString(),exercises:list,rows:list.map(function(ex){ return Array.from({length:ex.sets},function(){return {w:'',r:''};}); }),notes:list.map(function(){ return ''; })};
     saveActiveWorkout(); renderTabs(); renderDay();
   }
   function finishWorkout(){ activeWorkout=null; safeSet(ACTIVE_KEY,null); scheduleCloudSync(); renderTabs(); renderDay(); }
@@ -953,7 +1018,7 @@
     var day=activeWorkout.day, list=activeWorkout.exercises, d=activeWorkout.rows, all=loadSessions();
     var entry=all.filter(function(session){return session.id===activeWorkout.id;})[0];
     if(!entry){ entry={id:activeWorkout.id, day:day, label:activeWorkout.label, date:activeWorkout.date, chestSets:0, exercises:[]}; all.unshift(entry); }
-    entry.exercises=list.map(function(ex,i){ return {name:ex.name, chest:ex.chest, sets:d[i].map(function(r){ return {w:r.w, r:r.r}; })}; });
+    entry.exercises=list.map(function(ex,i){ return {name:ex.name, chest:ex.chest, sets:d[i].map(function(r){ return {w:r.w, r:r.r}; }), note:activeWorkout.notes&&activeWorkout.notes[i]||''}; });
     entry.chestSets=entry.exercises.filter(function(ex){ return ex.chest; }).reduce(function(n,ex){ return n+ex.sets.filter(setComplete).length; },0);
     saveSessions(all);
     saveActiveWorkout();
@@ -965,30 +1030,31 @@
   var sheet=document.getElementById('sheet'), sheetInner=document.getElementById('sheetInner');
 
   function lastTime(name){
-    var all=loadSessions();
-    for(var i=0;i<all.length;i++){
-      var hits=(all[i].exercises||[]).filter(function(e){ return e.name===name && (e.sets||[]).some(setComplete); });
-      if(hits.length){ return { date:all[i].date, sets:hits[0].sets }; }
-    }
-    return null;
+    var cutoff=activeWorkout?new Date(activeWorkout.date).getTime():Infinity, latest=null;
+    loadSessions().forEach(function(session){
+      var date=new Date(session.date).getTime();
+      if(session.id===(activeWorkout&&activeWorkout.id) || isNaN(date) || date>=cutoff) return;
+      var hit=(session.exercises||[]).filter(function(exercise){ return exercise.name===name && ((exercise.sets||[]).some(setComplete) || exercise.note); })[0];
+      if(hit && (!latest || date>latest.time)) latest={time:date,date:session.date,sets:hit.sets,note:hit.note||''};
+    });
+    return latest;
   }
 
   function openSheet(idx){
     openIdx=idx;
     renderSheet();
-    showWithMotion(sheet);
+    sheet.hidden=false;
     document.body.style.overflow='hidden';
     sheet.scrollTop=0;
   }
   function closeSheet(){
-    hideWithMotion(sheet,function(){
-      openIdx=null; document.body.style.overflow=''; renderDay();
-      if(typeof flushPendingRemote === 'function') flushPendingRemote();
-    });
+    sheet.hidden=true;
+    openIdx=null; document.body.style.overflow=''; renderDay();
+    if(typeof flushPendingRemote === 'function') flushPendingRemote();
   }
 
   function renderSheet(){
-    var day=activeWorkout.day, list=activeWorkout.exercises, ex=list[openIdx], d=draftFor(day)[openIdx];
+    var day=activeWorkout.day, list=activeWorkout.exercises, ex=list[openIdx], d=draftFor(day)[openIdx], notes=activeWorkout.notes||(activeWorkout.notes=[]), note=notes[openIdx]||'';
     var html='';
     html += '<div class="sheet-top"><button class="icon-btn" id="sheetBack" aria-label="Back">&larr;</button>';
     html += '<div class="sheet-title">'+esc(ex.name)+'</div></div>';
@@ -1014,6 +1080,8 @@
       html += '</div>';
     }
     html += '</div></div>';
+    html += '<label class="note-label"><span class="vol-label">exercise note</span><textarea class="exercise-note" id="sheetNote" placeholder="form cues, equipment, pain…">'+esc(note)+'</textarea></label>';
+    if(lt && lt.note) html += '<div class="previous-note"><strong>previous note</strong><br>'+esc(lt.note)+'</div>';
 
     var hasPrev = openIdx > 0, hasNext = openIdx < list.length - 1;
     html += '<div class="rest-row">';
@@ -1029,6 +1097,10 @@
         activeWorkout.rows[openIdx][s][f] = inp.value;
         saveSession();
       });
+    });
+    document.getElementById('sheetNote').addEventListener('input', function(event){
+      activeWorkout.notes[openIdx]=event.target.value;
+      saveSession();
     });
     document.getElementById('sheetRest').addEventListener('click', function(){ startRest(ex.name, ex.rest); });
     document.getElementById('sheetBack').addEventListener('click', closeSheet);
@@ -1076,8 +1148,56 @@
   function refreshChestSets(session){
     session.chestSets=(session.exercises||[]).filter(function(exercise){ return exercise.chest; }).reduce(function(total,exercise){ return total+(exercise.sets||[]).filter(setComplete).length; },0);
   }
+  function calendarDateKey(value){
+    var date=new Date(value);
+    if(isNaN(date.getTime())) return '';
+    return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+  }
+  function calendarSessionGroups(sessions){
+    return (sessions||[]).reduce(function(groups,session){
+      var key=calendarDateKey(session.date);
+      if(key){ if(!groups[key]) groups[key]=[]; groups[key].push(session); }
+      return groups;
+    },{});
+  }
+  function sessionDateForInput(value, existing){
+    var match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value||'');
+    if(!match) return '';
+    var old=new Date(existing), year=+match[1], month=+match[2]-1, day=+match[3];
+    if(isNaN(old.getTime())) old=new Date();
+    var date=new Date(year,month,day,old.getHours(),old.getMinutes(),old.getSeconds(),old.getMilliseconds());
+    return date.getFullYear()===year && date.getMonth()===month && date.getDate()===day ? date.toISOString() : '';
+  }
+  var calendarMonth=(function(){ var now=new Date(); return new Date(now.getFullYear(),now.getMonth(),1); })(), calendarSelection='';
+  function renderCalendar(){
+    var el=document.getElementById('consistencyCalendar'), groups=calendarSessionGroups(loadSessions()), year=calendarMonth.getFullYear(), month=calendarMonth.getMonth();
+    var first=(new Date(year,month,1).getDay()+6)%7, days=new Date(year,month+1,0).getDate(), html='';
+    html+='<div class="calendar-top"><div class="calendar-month">'+calendarMonth.toLocaleDateString(undefined,{month:'long',year:'numeric'})+'</div><div class="calendar-nav"><button type="button" data-calendar-month="-1" aria-label="Previous month">&larr;</button><button type="button" data-calendar-month="1" aria-label="Next month">&rarr;</button></div></div>';
+    html+='<div class="calendar-weekdays"><span>m</span><span>t</span><span>w</span><span>t</span><span>f</span><span>s</span><span>s</span></div><div class="calendar-days">';
+    for(var blank=0;blank<first;blank++) html+='<span></span>';
+    for(var day=1;day<=days;day++){
+      var key=year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'), logged=groups[key], selected=key===calendarSelection;
+      if(logged) html+='<button type="button" class="calendar-day logged'+(selected?' selected':'')+'" data-calendar-date="'+key+'" aria-pressed="'+selected+'" aria-label="'+key+', '+logged.length+' workout'+(logged.length===1?'':'s')+' logged">'+day+'</button>';
+      else html+='<span class="calendar-day">'+day+'</span>';
+    }
+    html+='</div>';
+    var selectedSessions=groups[calendarSelection];
+    if(selectedSessions){
+      var displayDate=new Date(calendarSelection+'T12:00:00');
+      html+='<div class="calendar-detail"><div class="calendar-detail-title">'+displayDate.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+'</div>';
+      selectedSessions.forEach(function(session){
+        html+='<div class="calendar-session"><div class="calendar-session-main"><div class="hist-day">'+esc(session.label||DAY_LABELS[session.day]||'workout')+'</div><div class="calendar-session-meta">'+sessionSets(session)+' sets · '+(session.chestSets||0)+' chest sets</div></div><button type="button" class="txt-btn" data-calendar-edit="'+session.id+'">edit</button></div>';
+      });
+      html+='</div>';
+    }
+    el.innerHTML=html;
+    el.querySelectorAll('[data-calendar-month]').forEach(function(button){ button.addEventListener('click',function(){ calendarMonth=new Date(year,month+(+button.dataset.calendarMonth),1); calendarSelection=''; renderCalendar(); }); });
+    el.querySelectorAll('[data-calendar-date]').forEach(function(button){ button.addEventListener('click',function(){ calendarSelection=button.dataset.calendarDate; renderCalendar(); }); });
+    el.querySelectorAll('[data-calendar-edit]').forEach(function(button){ button.addEventListener('click',function(){ openLogEditor(+button.dataset.calendarEdit); }); });
+  }
   function renderHistory(){
     var all=loadSessions(), el=document.getElementById('historyList');
+    renderCalendar();
     if(!all.length){ el.innerHTML='<div class="hist-empty">nothing logged yet</div>'; return; }
     var html='';
     all.forEach(function(x,i){
@@ -1103,30 +1223,35 @@
   function logSession(){ return loadSessions().filter(function(session){ return session.id===logSessionId; })[0]; }
   function saveLogChange(change){
     var sessions=updateSession(loadSessions(), logSessionId, function(session){ change(session); refreshChestSets(session); });
-    saveSessions(sessions); renderVolume(); renderProgressPreview();
+    saveSessions(sessions); renderVolume(); renderHistory(); renderProgressPreview();
     if(!progressPage.hidden) renderProgress();
   }
   function openLogEditor(id){
-    logSessionId=id; renderLogEditor(); showWithMotion(logEditor); document.body.style.overflow='hidden'; logEditor.scrollTop=0;
+    logSessionId=id; renderLogEditor(); logEditor.hidden=false; document.body.style.overflow='hidden'; logEditor.scrollTop=0;
   }
   function closeLogEditor(){
-    hideWithMotion(logEditor,function(){
-      logSessionId=null; document.body.style.overflow=''; renderHistory();
-      if(typeof flushPendingRemote === 'function') flushPendingRemote();
-    });
+    logEditor.hidden=true;
+    logSessionId=null; document.body.style.overflow=''; renderHistory();
+    if(typeof flushPendingRemote === 'function') flushPendingRemote();
   }
   function renderLogEditor(){
     var session=logSession();
     if(!session){ closeLogEditor(); return; }
     var html='<div class="ed-top"><h1 id="logEditorTitle" style="font-size:20px">edit '+esc(session.label||DAY_LABELS[session.day]||'workout')+'</h1><button class="icon-btn" id="closeLogEditor" aria-label="Close editor">&times;</button></div>';
-    html+='<div class="ed-hint">'+new Date(session.date).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric',year:'numeric'})+'</div>';
+    html+='<label class="ed-hint">date <input class="log-date" id="logDate" type="date" value="'+calendarDateKey(session.date)+'"></label>';
     (session.exercises||[]).forEach(function(ex,i){
       html+='<div class="sketch'+(i%2?' b':'')+' ed-card"><input class="ed-input ed-name" type="text" data-log-ex="'+i+'" aria-label="Exercise name" value="'+esc(ex.name)+'"><div class="col-head"><span>n</span><span>weight</span><span>reps</span></div><div class="set-rows">';
       (ex.sets||[]).forEach(function(set,j){ html+='<div class="set-row"><span class="set-n">'+(j+1)+'</span><input type="text" inputmode="decimal" data-log-ex="'+i+'" data-log-set="'+j+'" data-log-field="w" aria-label="Set '+(j+1)+' weight" value="'+esc(set&&set.w||'')+'"><input type="text" inputmode="numeric" data-log-ex="'+i+'" data-log-set="'+j+'" data-log-field="r" aria-label="Set '+(j+1)+' reps" value="'+esc(set&&set.r||'')+'"></div>'; });
-      html+='</div></div>';
+      html+='</div><label class="note-label"><span class="vol-label">exercise note</span><textarea class="exercise-note" data-log-note="'+i+'" placeholder="form cues, equipment, pain…">'+esc(ex.note||'')+'</textarea></label></div>';
     });
     logEditorInner.innerHTML=html;
     document.getElementById('closeLogEditor').addEventListener('click', closeLogEditor);
+    document.getElementById('logDate').addEventListener('change', function(event){
+      var next=sessionDateForInput(event.target.value, session.date);
+      if(!next) return;
+      saveLogChange(function(saved){ saved.date=next; });
+      renderLogEditor();
+    });
     logEditorInner.querySelectorAll('[data-log-ex]').forEach(function(input){ input.addEventListener('input', function(){
       var exercise=+input.dataset.logEx, set=input.dataset.logSet, field=input.dataset.logField;
       saveLogChange(function(session){
@@ -1134,10 +1259,14 @@
         else { session.exercises[exercise].name=input.value; }
       });
     }); });
+    logEditorInner.querySelectorAll('[data-log-note]').forEach(function(input){ input.addEventListener('input', function(){
+      var exercise=+input.dataset.logNote;
+      saveLogChange(function(session){ session.exercises[exercise].note=input.value; });
+    }); });
   }
 
   /* ---------- progress charts ---------- */
-  var progressPage=document.getElementById('progressPage'), progressChoice='__overall__', progressRange='12w', progressPoint=0;
+  var progressPage=document.getElementById('progressPage'), weightPage=document.getElementById('weightPage'), weightEditPage=document.getElementById('weightEditPage'), weightEditingId=null, progressChoice='__overall__', progressRange='12w', progressPoint=0;
   function progressFormat(value){ return Math.round(value*10)/10; }
   function progressDate(date){ return new Date(date).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); }
   function allProgressGroups(){
@@ -1162,7 +1291,7 @@
     });
     return path;
   }
-  function drawProgressChart(el,points,series,unit,compact){
+  function drawProgressChart(el,points,series,unit,compact,summaryLabel){
     var values=[];
     series.forEach(function(line){ line.values.forEach(function(point){ if(point) values.push(point.value); }); });
     if(!points.length || !values.length){ el.innerHTML='<div class="chart-empty">not enough data in this range</div>'; return; }
@@ -1172,7 +1301,7 @@
     var times=points.map(function(point){ return new Date(point.date).getTime(); }), first=times[0], span=times[times.length-1]-first;
     function x(i){ return span ? left+(times[i]-first)/span*(width-left-right) : points.length>1 ? left+i/(points.length-1)*(width-left-right) : (left+width-right)/2; }
     function y(value){ return top+(max-value)/(max-min)*(height-top-bottom); }
-    var summary=(unit==='index'?'Overall weight index':'Exercise '+unit)+' from '+progressDate(points[0].date)+' to '+progressDate(points[points.length-1].date);
+    var summary=(summaryLabel || (unit==='index'?'Overall weight index':'Exercise '+unit))+' from '+progressDate(points[0].date)+' to '+progressDate(points[points.length-1].date);
     var svg='<svg viewBox="0 0 '+width+' '+height+'" role="img" aria-label="'+esc(summary)+'">';
     if(!compact){
       for(var tick=0;tick<4;tick++){
@@ -1209,6 +1338,44 @@
     change.textContent=(delta>=0?'+':'')+progressFormat(delta)+'% from baseline';
     drawProgressChart(document.getElementById('progressPreviewChart'),points,[{average:true,values:points.map(function(point){ return {value:point.value}; })}],'index',true);
   }
+  function renderWeight(){
+    var entries=sortedWeightEntries(loadWeights()), latest=latestWeight(entries), chart=document.getElementById('weightChart');
+    document.getElementById('weightCurrent').textContent=latest ? progressFormat(latest.weight)+' lb' : '—';
+    var points=entries.map(function(entry){ return {date:entry.date+'T12:00:00',value:entry.weight}; });
+    drawProgressChart(chart,points,[{average:true,values:points.map(function(point){ return {value:point.value}; })}],'lb',true,'Body weight');
+  }
+  function renderWeightModule(){
+    var entries=sortedWeightEntries(loadWeights()), latest=latestWeight(entries), input=document.getElementById('weightInput'), date=document.getElementById('weightDate'), list=document.getElementById('weightList');
+    input.placeholder=latest ? progressFormat(latest.weight)+' lb' : 'lb';
+    if(!date.value) date.value=weightToday();
+    list.innerHTML=entries.length ? entries.slice().reverse().map(function(entry){ return '<button type="button" class="weight-log" data-weight-id="'+esc(entry.id)+'"><span>'+esc(weightDate(entry.date).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}))+'</span><strong>'+progressFormat(entry.weight)+' lb</strong><span class="chev" aria-hidden="true">›</span></button>'; }).join('') : '<div class="hist-empty">no weights logged yet</div>';
+    list.querySelectorAll('.weight-log').forEach(function(log){ log.addEventListener('click',function(){ openWeightEditor(log.dataset.weightId); }); });
+  }
+  function openWeightEditor(id){
+    var entry=sortedWeightEntries(loadWeights()).filter(function(item){ return String(item.id)===String(id); })[0];
+    if(!entry) return;
+    weightEditingId=entry.id;
+    document.getElementById('weightEditInput').value=progressFormat(entry.weight);
+    document.getElementById('weightEditDate').value=entry.date;
+    document.getElementById('weightEditNote').textContent='';
+    weightEditPage.hidden=false;
+    document.getElementById('closeWeightEdit').focus();
+  }
+  document.getElementById('weightAddForm').addEventListener('submit',function(event){
+    event.preventDefault();
+    var input=document.getElementById('weightInput'), date=document.getElementById('weightDate'), note=document.getElementById('weightNote'), weight=weightValue(input.value);
+    if(weight===null || !weightDate(date.value)){ note.textContent='Enter a positive weight and valid date.'; return; }
+    saveWeights(loadWeights().concat({id:Date.now(),date:date.value,weight:weight}));
+    input.value=''; date.value=weightToday(); note.textContent='Weight logged.'; renderWeight(); renderWeightModule();
+  });
+  document.getElementById('weightEditForm').addEventListener('submit',function(event){
+    event.preventDefault();
+    var date=document.getElementById('weightEditDate').value, weight=weightValue(document.getElementById('weightEditInput').value), note=document.getElementById('weightEditNote');
+    if(weight===null || !weightDate(date)){ note.textContent='Enter a positive weight and valid date.'; return; }
+    saveWeights(updateWeight(loadWeights(),weightEditingId,function(entry){ entry.date=date; entry.weight=weight; }));
+    weightEditPage.hidden=true; weightEditingId=null;
+    document.getElementById('weightNote').textContent='Weight updated.'; renderWeight(); renderWeightModule();
+  });
   function exerciseChartSeries(model,points){
     var count=points.reduce(function(max,point){ return Math.max(max,point.sets.length); },0), series=[];
     for(var i=0;i<count;i++){
@@ -1267,29 +1434,33 @@
     }
     renderProgressPointDetail();
   }
-  document.getElementById('openProgress').addEventListener('click',function(){ showWithMotion(progressPage); document.body.style.overflow='hidden'; renderProgress(); document.getElementById('closeProgress').focus(); });
-  document.getElementById('closeProgress').addEventListener('click',function(){ hideWithMotion(progressPage,function(){ document.body.style.overflow=''; document.getElementById('openProgress').focus(); }); });
+  document.getElementById('openProgress').addEventListener('click',function(){ progressPage.hidden=false; document.body.style.overflow='hidden'; renderProgress(); document.getElementById('closeProgress').focus(); });
+  document.getElementById('closeProgress').addEventListener('click',function(){ progressPage.hidden=true; document.body.style.overflow=''; document.getElementById('openProgress').focus(); });
   document.getElementById('progressExercise').addEventListener('change',function(event){ progressChoice=event.target.value; renderProgress(); });
   document.getElementById('progressRanges').addEventListener('click',function(event){ if(event.target.dataset.range){ progressRange=event.target.dataset.range; renderProgress(); } });
   document.addEventListener('keydown',function(event){ if(event.key==='Escape' && !progressPage.hidden) document.getElementById('closeProgress').click(); });
+  document.getElementById('openWeight').addEventListener('click',function(){ weightPage.hidden=false; document.body.style.overflow='hidden'; renderWeightModule(); document.getElementById('closeWeight').focus(); });
+  document.getElementById('closeWeight').addEventListener('click',function(){ weightPage.hidden=true; document.body.style.overflow=''; document.getElementById('openWeight').focus(); flushPendingRemote(); });
+  document.addEventListener('keydown',function(event){ if(event.key==='Escape' && !weightPage.hidden && weightEditPage.hidden) document.getElementById('closeWeight').click(); });
+  document.getElementById('closeWeightEdit').addEventListener('click',function(){ weightEditPage.hidden=true; weightEditingId=null; });
+  document.addEventListener('keydown',function(event){ if(event.key==='Escape' && !weightEditPage.hidden) document.getElementById('closeWeightEdit').click(); });
 
   /* ---------- editor ---------- */
   var editor=document.getElementById('editor'), edTabs=document.getElementById('edTabs'), edList=document.getElementById('edList');
   var edDay="A", swapOpen=null;
 
   document.getElementById('openEdit').addEventListener('click', function(){
-    edDay=activeDay; swapOpen=null; showWithMotion(editor); document.body.style.overflow='hidden';
+    edDay=activeDay; swapOpen=null; editor.hidden=false; document.body.style.overflow='hidden';
     var rest=program.A[0] ? program.A[0].rest : 90;
     document.getElementById('defaultRestMinutes').value=Math.floor(rest/60);
     document.getElementById('defaultRestSeconds').value=rest%60;
     renderEdTabs(); renderEdList();
   });
   function closeEditor(){
-    hideWithMotion(editor,function(){
-      document.body.style.overflow=''; activeDay=edDay;
-      renderTabs(); renderDay(); renderBodyPanel(); renderVolume();
-      if(typeof flushPendingRemote === 'function') flushPendingRemote();
-    });
+    editor.hidden=true;
+    document.body.style.overflow=''; activeDay=edDay;
+    renderTabs(); renderDay(); renderBodyPanel(); renderVolume();
+    if(typeof flushPendingRemote === 'function') flushPendingRemote();
   }
   document.getElementById('closeEdit').addEventListener('click', closeEditor);
   document.getElementById('doneEdit').addEventListener('click', closeEditor);
@@ -1456,6 +1627,7 @@
   renderDay();
   renderVolume();
   renderProgressPreview();
+  renderWeight();
   renderHistory();
   initCloudSync();
 })();

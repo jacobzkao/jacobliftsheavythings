@@ -1,9 +1,16 @@
 const MAX_BYTES = 1024 * 1024;
 
+function validWeightEntry(entry) {
+  if (!entry || (typeof entry.id !== 'string' && !Number.isFinite(entry.id)) || typeof entry.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(entry.date) || !Number.isFinite(entry.weight) || entry.weight <= 0) return false;
+  const date = new Date(`${entry.date}T12:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === entry.date;
+}
+
 function validState(state) {
   return Boolean(!!state && typeof state === 'object'
     && state.program && ['A', 'B', 'C'].every(day => Array.isArray(state.program[day]))
     && Array.isArray(state.sessions)
+    && (state.weights === undefined || (Array.isArray(state.weights) && state.weights.every(validWeightEntry)))
     && (state.theme === null || state.theme === 'light' || state.theme === 'dark')
     && (state.activeWorkout === null || (typeof state.activeWorkout === 'object' && state.activeWorkout.id)));
 }
