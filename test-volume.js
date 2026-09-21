@@ -23,6 +23,10 @@ assert.match(source, /function finishWorkout\(\)/, 'active workouts can be finis
 assert.match(source, /id:Date\.now\(\)/, 'each started workout gets a unique session id');
 assert.match(source, /session\.id===activeWorkout\.id/, 'logging updates the active session instead of a weekly slot');
 assert.match(source, /ACTIVE_KEY/, 'active workouts persist for resume after reload');
+const nextDayAfter = new Function(`var DAY_KEYS=['A','B','C']; ${source.match(/function nextDayAfter\(day\)\{.*\}/)[0]}; return nextDayAfter;`)();
+assert.deepEqual(['A', 'B', 'C'].map(nextDayAfter), ['B', 'C', 'A'], 'finished workouts advance through the day sequence');
+assert.match(source, /id="addDay"/, 'editor can add program days');
+assert.match(source, /id="removeDay"/, 'editor can remove program days');
 
 const mergeSessions = new Function(source.match(/function mergeSessions\(local, remote\)\{[\s\S]*?\n  \}/)[0] + '; return mergeSessions;')();
 assert.deepEqual(mergeSessions([{id:1, value:'remote'}], [{id:1, value:'local'}, {id:2}]), [{id:1, value:'remote'}, {id:2}], 'cloud snapshots retain local-only history without replacing newer remote entries');
@@ -66,6 +70,7 @@ assert.match(source, /id="weightAddForm"/, 'the module can add weights');
 assert.match(source, /class="weight-log"/, 'the module shows existing weights as readable logs');
 assert.match(source, /id="weightEditPage"/, 'a selected log opens a dedicated edit menu');
 assert.match(source, /function openWeightEditor\(id\)/, 'weight logs open the edit menu on click');
+assert.match(source, /#weightPage,#weightEditPage\{ box-sizing:border-box; overflow-x:hidden; \}/, 'weight menus cannot overflow horizontally');
 
 const sessions = [
   { date: '2026-01-12T12:00:00Z', day: 'A', exercises: [{ name: 'Bench Press', sets: [{ w: '80', r: '6' }, { w: '80', r: '5' }, { w: '80', r: '5' }] }] },

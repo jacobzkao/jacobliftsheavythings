@@ -8,7 +8,8 @@ function validWeightEntry(entry) {
 
 function validState(state) {
   return Boolean(!!state && typeof state === 'object'
-    && state.program && ['A', 'B', 'C'].every(day => Array.isArray(state.program[day]))
+    && state.program && Object.keys(state.program).length > 0 && Object.values(state.program).every(Array.isArray)
+    && (state.nextDay === undefined || (typeof state.nextDay === 'string' && Array.isArray(state.program[state.nextDay])))
     && Array.isArray(state.sessions)
     && (state.weights === undefined || (Array.isArray(state.weights) && state.weights.every(validWeightEntry)))
     && (state.theme === null || state.theme === 'light' || state.theme === 'dark')

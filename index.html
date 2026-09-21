@@ -201,9 +201,11 @@
   .progress-open{ background:none; border:0; padding:4px 0; color:var(--muted); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
   .weight-card{ margin-bottom:18px; }
   .weight-current{ font-family:'Jost',sans-serif; font-size:24px; font-weight:300; line-height:1.15; margin-top:3px; }
-  .weight-form{ display:grid; grid-template-columns:1fr 1fr auto; gap:8px; margin-top:12px; }
+  #weightPage,#weightEditPage{ box-sizing:border-box; overflow-x:hidden; }
+  #weightPage .progress-inner,#weightEditPage .progress-inner{ width:100%; min-width:0; max-width:520px; }
+  .weight-form{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:8px; margin-top:12px; min-width:0; }
   .weight-form label{ min-width:0; }
-  .weight-form input{ box-sizing:border-box; width:100%; min-height:42px; padding:8px; border:1.4px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink); font:inherit; }
+  .weight-form input{ box-sizing:border-box; width:100%; min-width:0; min-height:42px; padding:8px; border:1.4px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink); font:inherit; }
   .weight-form button{ min-height:42px; padding:8px 13px; border:0; border-radius:999px; background:var(--ink); color:var(--paper); cursor:pointer; font:12px 'Jost',sans-serif; letter-spacing:.1em; text-transform:uppercase; }
   .weight-note{ min-height:18px; margin-top:7px; color:var(--muted); font-size:12px; }
   .weight-list{ margin-top:18px; }
@@ -211,7 +213,7 @@
   .weight-log span:first-child{ flex:1; color:var(--muted); }
   .weight-log strong{ font-family:'Jost',sans-serif; font-size:18px; font-weight:400; }
   .weight-log .chev{ margin-left:3px; }
-  @media(max-width:420px){ .weight-form{ grid-template-columns:1fr 1fr; } .weight-form button{ grid-column:1 / -1; } }
+  @media(max-width:480px){ .weight-form{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } .weight-form button{ grid-column:1 / -1; } }
   .chart{ margin-top:12px; min-height:92px; }
   .chart svg{ display:block; width:100%; height:auto; overflow:visible; }
   .chart-grid{ stroke:var(--line); stroke-width:1; }
@@ -516,6 +518,7 @@
       <button class="icon-btn" id="closeEdit" aria-label="Close editor">&times;</button>
     </div>
     <div class="tabs" id="edTabs"></div>
+    <div class="ed-acts"><button type="button" class="txt-btn" id="addDay">add day</button><button type="button" class="txt-btn accent" id="removeDay">remove this day</button></div>
     <div class="ed-timer"><label>default rest <input id="defaultRestMinutes" type="number" min="0" max="60" step="1" inputmode="numeric" aria-label="Rest minutes"> min <input id="defaultRestSeconds" type="number" min="0" max="59" step="1" inputmode="numeric" aria-label="Rest seconds"> sec</label></div>
     <div id="edList"></div>
     <button class="pill ghost" id="addExercise">add exercise</button>
@@ -676,6 +679,7 @@
   var PROGRAM_KEY = "chestlog_program_v3";
   var THEME_KEY = "chestlog_theme";
   var ACTIVE_KEY = "chestlog_active_v1";
+  var NEXT_DAY_KEY = "chestlog_next_day_v1";
   var WEIGHT_KEY = "chestlog_weights_v1";
   var REMOTE_READY_KEY = "chestlog_remote_v1";
 
@@ -704,9 +708,10 @@
     });
   }
 
-  var program = safeGet(PROGRAM_KEY) || clone(DEFAULT_PROGRAM);
+  var program = safeGet(PROGRAM_KEY);
+  if(!program || !Object.keys(program).some(function(k){ return Array.isArray(program[k]); })) program=clone(DEFAULT_PROGRAM);
+  DAY_KEYS=Object.keys(program).filter(function(k){ return Array.isArray(program[k]); });
   DAY_KEYS.forEach(function(k){
-    if(!Array.isArray(program[k]) || !program[k].length){ program[k] = clone(DEFAULT_PROGRAM[k]); }
     program[k].forEach(function(ex){
       delete ex.rir;
       var def = defaultFor(ex.id);
@@ -714,12 +719,16 @@
       if(!ex.primary) ex.primary = []; if(!ex.secondary) ex.secondary = [];
     });
   });
+  function dayLabel(day){ return DAY_LABELS[day] || ('day '+String(day).toLowerCase()); }
+  function nextDayAfter(day){ var i=DAY_KEYS.indexOf(day); return DAY_KEYS[(i+1+DAY_KEYS.length)%DAY_KEYS.length]; }
   function persist(){ safeSet(PROGRAM_KEY, program); scheduleCloudSync(); }
 
   /* ---------- Vercel state sync (localStorage stays the offline cache) ---------- */
-  var activeWorkout = safeGet(ACTIVE_KEY), remoteRevision = null, syncTimer = null, syncing = false, pendingRemoteData = null;
+  var activeWorkout = safeGet(ACTIVE_KEY), nextDay = safeGet(NEXT_DAY_KEY), remoteRevision = null, syncTimer = null, syncing = false, pendingRemoteData = null;
+  if(DAY_KEYS.indexOf(nextDay)<0) nextDay=DAY_KEYS[0];
   function saveActiveWorkout(){ safeSet(ACTIVE_KEY, activeWorkout); scheduleCloudSync(); }
-  function stateSnapshot(){ return {program:program, sessions:loadSessions(), weights:loadWeights(), theme:safeGet(THEME_KEY)||null, activeWorkout:activeWorkout||null}; }
+  function saveNextDay(){ safeSet(NEXT_DAY_KEY,nextDay); scheduleCloudSync(); }
+  function stateSnapshot(){ return {program:program, nextDay:nextDay, sessions:loadSessions(), weights:loadWeights(), theme:safeGet(THEME_KEY)||null, activeWorkout:activeWorkout||null}; }
   function scheduleCloudSync(){
     if(remoteRevision===null || syncing) return;
     if(syncTimer) clearTimeout(syncTimer);
@@ -739,8 +748,11 @@
   }
   function applyRemoteState(data){
     if(!data) return;
-    var programOk = data.program && DAY_KEYS.every(function(k){ return Array.isArray(data.program[k]); });
-    if(programOk){ program = data.program; safeSet(PROGRAM_KEY, program); }
+    var programOk = data.program && Object.keys(data.program).length && Object.keys(data.program).every(function(k){ return Array.isArray(data.program[k]); });
+    if(programOk){ program = data.program; DAY_KEYS=Object.keys(program); safeSet(PROGRAM_KEY, program); }
+    if(DAY_KEYS.indexOf(activeDay)<0) activeDay=DAY_KEYS[0];
+    if(DAY_KEYS.indexOf(data.nextDay)>=0){ nextDay=data.nextDay; safeSet(NEXT_DAY_KEY,nextDay); }
+    else if(DAY_KEYS.indexOf(nextDay)<0){ nextDay=DAY_KEYS[0]; safeSet(NEXT_DAY_KEY,nextDay); }
     if(Array.isArray(data.sessions)){ safeSet(SESS_KEY, mergeSessions(data.sessions, loadSessions())); }
     if(Array.isArray(data.weights)){ safeSet(WEIGHT_KEY, mergeWeights(data.weights, loadWeights())); }
     if(data.theme === 'dark' || data.theme === 'light'){ safeSet(THEME_KEY, data.theme); }
@@ -779,7 +791,8 @@
       if(data.state) tryApplyRemote(data.state);
       else if(!safeGet(REMOTE_READY_KEY)){
         program=clone(DEFAULT_PROGRAM); activeWorkout=null;
-        safeSet(PROGRAM_KEY,program); safeSet(SESS_KEY,[]); safeSet(WEIGHT_KEY,[]); safeSet(ACTIVE_KEY,null);
+        DAY_KEYS=Object.keys(program);
+        safeSet(PROGRAM_KEY,program); safeSet(SESS_KEY,[]); safeSet(WEIGHT_KEY,[]); safeSet(ACTIVE_KEY,null); nextDay=DAY_KEYS[0]; safeSet(NEXT_DAY_KEY,nextDay);
         applyRemoteState(stateSnapshot());
       }
       safeSet(REMOTE_READY_KEY,true);
@@ -789,8 +802,9 @@
   window.addEventListener('online',function(){ initCloudSync(); });
 
   function defaultFor(id){
-    for(var i=0;i<DAY_KEYS.length;i++){
-      var arr = DEFAULT_PROGRAM[DAY_KEYS[i]];
+    var defaultDays=Object.keys(DEFAULT_PROGRAM);
+    for(var i=0;i<defaultDays.length;i++){
+      var arr = DEFAULT_PROGRAM[defaultDays[i]];
       for(var j=0;j<arr.length;j++){ if(arr[j].id === id) return arr[j]; }
     }
     return null;
@@ -801,7 +815,7 @@
   function setComplete(set){ return !!(set && (set.w || set.r)); }
   function sessionSets(x){ return (x.exercises||[]).reduce(function(total,exercise){ return total+(exercise.sets||[]).filter(setComplete).length; },0); }
 
-  var activeDay = "A";
+  var activeDay = DAY_KEYS.indexOf("A")>=0 ? "A" : DAY_KEYS[0];
   var openIdx = null;
 
   function draftFor(day){
@@ -935,7 +949,7 @@
     DAY_KEYS.forEach(function(k){
       var b=document.createElement('button');
       b.className='tab'+(k===getActive()?' active':'');
-      b.innerHTML = DAY_LABELS[k] + '<small>' + chestSets(k) + ' chest sets</small>';
+      b.innerHTML = dayLabel(k) + '<small>' + chestSets(k) + ' chest sets' + (k===nextDay?' · next':'') + '</small>';
       b.addEventListener('click', function(){ onPick(k); });
       el.appendChild(b);
     });
@@ -976,7 +990,8 @@
   function renderDay(){
     if(!activeWorkout){
       var planned=program[activeDay]||[], total=planned.reduce(function(n,ex){return n+ex.sets;},0);
-      var html='<div class="sketch sketch-pad"><div class="vol-label">'+esc(DAY_LABELS[activeDay])+'</div><div class="sheet-reps">'+planned.length+' exercises · '+total+' sets</div><div class="workout-overview">';
+      var html='<div class="sketch sketch-pad"><div class="vol-label">'+esc(dayLabel(activeDay))+'</div><div class="sheet-reps">'+planned.length+' exercises · '+total+' sets</div><div class="workout-overview">';
+      if(activeDay===nextDay) html+='<div class="vol-label">next workout</div>';
       planned.forEach(function(ex){ html+='<div class="workout-overview-row"><span>'+esc(ex.name)+'</span><span>'+ex.sets+' × '+esc(ex.repRange)+'</span></div>'; });
       dayView.innerHTML=html+'</div><button class="pill" id="startWorkout">start workout</button></div>';
       document.getElementById('startWorkout').addEventListener('click',startWorkout);
@@ -1008,10 +1023,10 @@
 
   function startWorkout(){
     var list=clone(program[activeDay]);
-    activeWorkout={id:Date.now(),day:activeDay,label:DAY_LABELS[activeDay],date:new Date().toISOString(),exercises:list,rows:list.map(function(ex){ return Array.from({length:ex.sets},function(){return {w:'',r:''};}); }),notes:list.map(function(){ return ''; })};
+    activeWorkout={id:Date.now(),day:activeDay,label:dayLabel(activeDay),date:new Date().toISOString(),exercises:list,rows:list.map(function(ex){ return Array.from({length:ex.sets},function(){return {w:'',r:''};}); }),notes:list.map(function(){ return ''; })};
     saveActiveWorkout(); renderTabs(); renderDay();
   }
-  function finishWorkout(){ activeWorkout=null; safeSet(ACTIVE_KEY,null); scheduleCloudSync(); renderTabs(); renderDay(); }
+  function finishWorkout(){ nextDay=nextDayAfter(activeWorkout.day); activeWorkout=null; safeSet(ACTIVE_KEY,null); saveNextDay(); renderTabs(); renderDay(); }
 
   function saveSession(){
     if(!activeWorkout) return;
@@ -1451,7 +1466,7 @@
 
   document.getElementById('openEdit').addEventListener('click', function(){
     edDay=activeDay; swapOpen=null; editor.hidden=false; document.body.style.overflow='hidden';
-    var rest=program.A[0] ? program.A[0].rest : 90;
+    var rest=program[DAY_KEYS[0]][0] ? program[DAY_KEYS[0]][0].rest : 90;
     document.getElementById('defaultRestMinutes').value=Math.floor(rest/60);
     document.getElementById('defaultRestSeconds').value=rest%60;
     renderEdTabs(); renderEdList();
@@ -1561,10 +1576,26 @@
   }
 
   document.getElementById('resetDay').addEventListener('click', function(){
+    if(!DEFAULT_PROGRAM[edDay]) return;
     program[edDay]=clone(DEFAULT_PROGRAM[edDay]); persist(); swapOpen=null; renderEdList(); renderEdTabs();
   });
+  document.getElementById('addDay').addEventListener('click', function(){
+    var code=65;
+    DAY_KEYS.forEach(function(day){ code=Math.max(code,day.charCodeAt(0)+1); });
+    var key=String.fromCharCode(code);
+    while(program[key]) key+='1';
+    program[key]=[]; DAY_KEYS.push(key); edDay=key; activeDay=key; nextDay=key;
+    persist(); saveNextDay(); renderEdTabs(); renderEdList();
+  });
+  document.getElementById('removeDay').addEventListener('click', function(){
+    if(DAY_KEYS.length===1) return;
+    var i=DAY_KEYS.indexOf(edDay); delete program[edDay]; DAY_KEYS.splice(i,1);
+    edDay=DAY_KEYS[Math.max(0,i-1)]; activeDay=edDay;
+    if(DAY_KEYS.indexOf(nextDay)<0) nextDay=edDay;
+    persist(); saveNextDay(); swapOpen=null; renderEdTabs(); renderEdList();
+  });
   document.getElementById('addExercise').addEventListener('click', function(){
-    program[edDay].push({id:edDay+'-'+Date.now(), name:'New exercise', chest:false, sets:3, repRange:'8–12', rest:program.A[0] ? program.A[0].rest : 90, primary:[], secondary:[]});
+    program[edDay].push({id:edDay+'-'+Date.now(), name:'New exercise', chest:false, sets:3, repRange:'8–12', rest:program[DAY_KEYS[0]][0] ? program[DAY_KEYS[0]][0].rest : 90, primary:[], secondary:[]});
     persist(); renderEdList(); renderEdTabs();
   });
   function applyDefaultRest(){
